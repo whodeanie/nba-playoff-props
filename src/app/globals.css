@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark light;
+}
+
+html, body {
+  @apply bg-ink-900 text-ink-50 antialiased;
+  min-height: 100%;
+}
+
+html.light, html.light body {
+  @apply bg-ink-50 text-ink-900;
+}
+
+a { @apply underline-offset-2; }
+a:hover { @apply underline; }
+
+.card {
+  @apply rounded-lg border border-ink-700 bg-ink-800/60 p-4;
+}
+html.light .card {
+  @apply border-ink-200 bg-white;
+}
+
+.muted { @apply text-ink-300; }
+html.light .muted { @apply text-ink-500; }
+
+.subtle { @apply text-ink-400 text-sm; }
+html.light .subtle { @apply text-ink-500 text-sm; }
+
+.btn {
+  @apply inline-flex items-center gap-2 rounded-md border border-ink-600 bg-ink-700 px-3 py-1.5 text-sm hover:bg-ink-600 transition;
+}
+html.light .btn {
+  @apply border-ink-300 bg-ink-100 text-ink-900 hover:bg-ink-200;
+}
+
+.tag {
+  @apply inline-block rounded-full bg-ink-700 px-2 py-0.5 text-xs uppercase tracking-wide;
+}
+html.light .tag {
+  @apply bg-ink-200 text-ink-700;
+}
+
+.row-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr 1fr;
+  gap: 0.5rem;
+}
+@media (max-width: 720px) {
+  .row-grid { grid-template-columns: 1.5fr 1fr 1fr 1fr; }
+  .row-grid .desktop-only { display: none; }
+}
+
+table.compact th, table.compact td {
+  @apply py-2 px-2 text-sm border-b border-ink-700;
+  text-align: left;
+}
+html.light table.compact th, html.light table.compact td {
+  @apply border-ink-200;
+}
