@@ -16,15 +16,15 @@ No "lock of the day" calls. No paid tier. No email capture. No popups. No promis
 
 ## Tech stack
 
-Next.js 15 App Router, TypeScript strict, Tailwind, Anthropic SDK, file based caching. Deploys to Vercel free tier with one cron job (30 minute refresh) and ISR on every page.
+Next.js 15 App Router, TypeScript strict, Tailwind, Groq via the OpenAI SDK, file based caching. Deploys to Vercel free tier with one cron job (30 minute refresh) and ISR on every page.
 
-All data sources default to free. The Anthropic key is optional; without it the app falls back to a deterministic templated explanation. The OddsAPI key is optional; without it the app synthesizes plausible lines around the projection so the UI still renders during local development.
+All data sources default to free. The Groq key is optional; without it the app falls back to a deterministic templated explanation. The OddsAPI key is optional; without it the app synthesizes plausible lines around the projection so the UI still renders during local development.
 
 ## Cost
 
 The OddsAPI free tier gives 500 requests per month. We send roughly 4 requests per game per refresh (one per market) plus a small number of metadata calls, so a typical evening with 4 games costs about 80 requests. A full playoff month sits comfortably under the free cap.
 
-The Anthropic key costs roughly $0.01 per game per refresh on Claude Haiku 4.5 with cached prompts. A 30 game playoff month is well under $5.
+Groq's free tier covers Llama 3.3 70B with generous daily token limits, plenty for a personal site refreshed every 30 minutes. Hit the cap and the app silently switches to the templated paragraph for the rest of the day.
 
 Vercel free tier covers everything else: hosting, ISR, two cron jobs (we use one).
 
@@ -34,7 +34,7 @@ Vercel free tier covers everything else: hosting, ISR, two cron jobs (we use one
 git clone https://github.com/whodeanie/nba-playoff-props.git
 cd nba-playoff-props
 cp .env.example .env.local
-# fill in ODDS_API_KEY (optional), ANTHROPIC_API_KEY (optional), CRON_SECRET (any string)
+# fill in ODDS_API_KEY (optional), GROQ_API_KEY (optional), CRON_SECRET (any string)
 npm install
 npm run dev
 ```
@@ -60,7 +60,7 @@ src/
     odds-api.ts               OddsAPI client (with synthesized fallback)
     cache.ts                  file based cache helpers
     model.ts                  prediction math, pure functions
-    reasoning.ts              Anthropic call for plain English paragraph
+    reasoning.ts              Groq call for plain English paragraph
     historical.ts             hit rate and calibration math
     build-rows.ts             glue code page routes call
 tests/

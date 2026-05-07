@@ -1,17 +1,17 @@
-// Plain English reasoning generator. Calls Anthropic with structured
-// factors as context and returns a 60 to 100 word paragraph in
-// conversational tone. Cached per game/player/market/line combo so we only
-// re-spend tokens when something actually changes.
+// Plain English reasoning generator. Calls Groq's free OpenAI compatible
+// endpoint with structured factors as context and returns a 60 to 100 word
+// paragraph in conversational tone. Cached per game/player/market/line combo
+// so we only re-spend tokens when something actually changes.
 //
-// Without ANTHROPIC_API_KEY we return a deterministic templated paragraph
+// Without GROQ_API_KEY we return a deterministic templated paragraph
 // built from the same factors. The UI labels both clearly.
 
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import type { Factors, PropMarket, Player, BookLine, Edge } from "./types";
 import { cacheWrap } from "./cache";
 import { marketLabel, formatAmericanOdds, leanLabel } from "./format";
 
-const MODEL = "claude-haiku-4-5-20251001";
+const MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 
 interface ReasoningArgs {
   player: Player;
@@ -28,23 +28,24 @@ interface ReasoningArgs {
 export async function generateReasoning(args: ReasoningArgs): Promise<string> {
   const cacheKey = buildKey(args);
   return cacheWrap(cacheKey, 25 * 60_000, async () => {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) return templated(args);
     try {
-      const client = new Anthropic({ apiKey });
+      const client = new OpenAI({
+        apiKey,
+        baseURL: "https://api.groq.com/openai/v1",
+      });
       const userPrompt = buildPrompt(args);
-      const resp = await client.messages.create({
+      const resp = await client.chat.completions.create({
         model: MODEL,
         max_tokens: 220,
         temperature: 0.4,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: "user", content: userPrompt }]
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: userPrompt },
+        ],
       });
-      const text = resp.content
-        .filter((b): b is { type: "text"; text: string } => b.type === "text")
-        .map((b) => b.text)
-        .join(" ")
-        .trim();
+      const text = (resp.choices[0]?.message?.content ?? "").trim();
       if (!text) return templated(args);
       return cleanDashes(text);
     } catch {
